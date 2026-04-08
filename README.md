@@ -41,4 +41,4 @@ pytest
 
 # Autor
 
-Seu Nome
+Pedro Antônio Falcão de Assis
