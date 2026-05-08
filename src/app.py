@@ -1,9 +1,8 @@
 import json
 import os
-import requests
 
-ARQUIVO = "gastos.json"
-API_URL = "https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL"
+# gastos.json fica sempre na raiz do projeto, independente de onde o script é chamado
+ARQUIVO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "gastos.json")
 
 
 def carregar_gastos():
@@ -20,7 +19,7 @@ def salvar_gastos(gastos):
 
 def adicionar_gasto(nome, valor):
     if valor < 0:
-        raise ValueError("Valor nao pode ser negativo")
+        raise ValueError("Valor não pode ser negativo")
 
     gastos = carregar_gastos()
     gastos.append({"nome": nome, "valor": valor})
@@ -36,71 +35,29 @@ def total_gastos():
     return sum(g["valor"] for g in gastos)
 
 
-def buscar_cotacoes(api_url=API_URL):
-    """Busca cotacoes de moedas na AwesomeAPI."""
-    try:
-        response = requests.get(api_url, timeout=5)
-        response.raise_for_status()
-        dados = response.json()
-        usd = float(dados["USDBRL"]["bid"])
-        eur = float(dados["EURBRL"]["bid"])
-        return {"USD": usd, "EUR": eur}
-    except requests.RequestException:
-        return None
-    except (KeyError, ValueError):
-        return None
-
-
-def exibir_cotacoes():
-    """Exibe as cotacoes atuais de USD e EUR em BRL."""
-    print("\nBuscando cotacoes...")
-    cotacoes = buscar_cotacoes()
-    if cotacoes:
-        print(f"  Dolar (USD): R$ {cotacoes['USD']:.2f}")
-        print(f"  Euro  (EUR): R$ {cotacoes['EUR']:.2f}")
-        total = total_gastos()
-        if total > 0:
-            print(f"\nSeu total de R$ {total:.2f} equivale a:")
-            print(f"  USD $ {total / cotacoes['USD']:.2f}")
-            print(f"  EUR  E {total / cotacoes['EUR']:.2f}")
-    else:
-        print("  Nao foi possivel obter as cotacoes no momento.")
-
-
 def menu():
-    print("\nControle de Gastos")
     while True:
         print("\n1 - Adicionar gasto")
         print("2 - Listar gastos")
         print("3 - Total gasto")
-        print("4 - Ver cotacoes (USD/EUR)")
-        print("5 - Sair")
+        print("4 - Sair")
 
         op = input("Escolha: ")
 
         if op == "1":
             nome = input("Nome: ")
-            valor = float(input("Valor (R$): "))
+            valor = float(input("Valor: "))
             adicionar_gasto(nome, valor)
             print("Gasto adicionado!")
 
         elif op == "2":
-            gastos = listar_gastos()
-            if not gastos:
-                print("Nenhum gasto registrado.")
-            else:
-                print("\nSeus gastos:")
-                for g in gastos:
-                    print(f"  - {g['nome']}: R$ {g['valor']:.2f}")
+            for g in listar_gastos():
+                print(g)
 
         elif op == "3":
-            print(f"\nTotal gasto: R$ {total_gastos():.2f}")
+            print("Total:", total_gastos())
 
         elif op == "4":
-            exibir_cotacoes()
-
-        elif op == "5":
-            print("Ate logo!")
             break
 
 
